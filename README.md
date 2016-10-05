@@ -2,10 +2,10 @@
 
 Teamname: Cloudweavers
 
-Jonathan Chandler
-Kevin C
-Kevin D
-Adam
+Jonathan Chandler  
+Kevin Cobarrubia  
+Kevin Detweiler  
+Adam Swogger  
 
 Cloud Provider - AWS   
 Programming Language - Java   
