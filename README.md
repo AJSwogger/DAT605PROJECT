@@ -9,5 +9,5 @@ Adam
 
 Cloud Provider - AWS   
 Programming Language - Java   
-Stack - Bitnami JBoss AS stack or Bitnami Tomcat Stack  
+Stack - Bitnami Tomcat Stack  
 Database - MySQL
