@@ -7,6 +7,6 @@ Kevin C
 Kevin D
 Adam
 
-Cloud Provider - AWS
-Programming Language - Java
+Cloud Provider - AWS   
+Programming Language - Java   
 Database - Bitnami JBoss AS stack
