@@ -42,9 +42,9 @@ public class TodoApp {
 						while (r1.next()) {
 							int i = 1;
 							while (i <= columnCount) {
-								String value = r1.getString(i++);
 								String key = r1.getString(i++);
-								obj.put(value, key);
+								String value = r1.getString(i++);
+								obj.put(key, value);
 							}
 						}
 					} catch (IllegalStateException e) {
