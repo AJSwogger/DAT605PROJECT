@@ -1,8 +1,6 @@
 package com.dat605;
 
-import java.sql.*; // for standard JDBC programs
-import java.util.ArrayList;
-import java.util.Collection;
+import java.sql.*; 
 import org.json.simple.JSONObject;
 import static spark.Spark.*;
 
