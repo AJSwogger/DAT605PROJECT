@@ -1,6 +1,7 @@
 package com.dat605;
 
-import java.sql.*; 
+import java.sql.*;
+import org.json.JSONArray;
 import org.json.simple.JSONObject;
 import static spark.Spark.*;
 
@@ -13,6 +14,7 @@ public class TodoApp {
 
 	public static void main(String[] args) {
 
+		//port(9090);
 		// Connect to Database
 		try {
 			connection = DriverManager.getConnection(url, username, password);
@@ -22,17 +24,67 @@ public class TodoApp {
 			e.printStackTrace();
 		}
 
-		post("/post", (ICRoute, response) -> {
-			response.body("Test");
-			return response;
-			// Create something
-			});
+		// RESTful methods
 
-		get("/test",
+		post("/api/todos", (request, response) -> {
+			String idTodo = request.queryParams("id");
+            String todoDesc = request.queryParams("todoDesc");
+            
+            PreparedStatement st = connection
+					.prepareStatement("INSERT INTO Todo (idTodo, todoDesc) VALUES (?, ?)");
+            st.setString(1, idTodo);
+            st.setString(2, todoDesc);
+            
+            st.executeUpdate();
+
+            response.status(201); // 201 Created
+
+			return response;
+
+			});
+		
+
+		get("/api/todos/:id",
 				(request, response) -> {
+					
 					JSONObject obj = new JSONObject();
 					try {
+						
+						PreparedStatement st = connection
+								.prepareStatement("SELECT * FROM Todo WHERE idTodo = "
+										+ request.params(":id"));
+						ResultSet r1 = st.executeQuery();
+						ResultSetMetaData metaData = r1.getMetaData();
+						int columnCount = metaData.getColumnCount();
 
+						if (!r1.isBeforeFirst()) {
+							response.status(404); // 404 Not found
+			                return "No Records Found";
+						} else {
+
+							while (r1.next()) {
+								int i = 1;
+								while (i <= columnCount) {
+									obj.put(metaData.getColumnLabel(i),
+											r1.getString(i++));
+								}
+							}
+						}
+					} catch (IllegalStateException e) {
+						e.printStackTrace();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+
+					return obj;
+				});
+
+		get("/api/todos",
+				(request, response) -> {
+
+					JSONArray jsonArray = new JSONArray();
+
+					try {
 						PreparedStatement st = connection
 								.prepareStatement("SELECT * FROM Todo");
 						ResultSet r1 = st.executeQuery();
@@ -41,11 +93,12 @@ public class TodoApp {
 
 						while (r1.next()) {
 							int i = 1;
+							JSONObject obj = new JSONObject();
 							while (i <= columnCount) {
-								String key = r1.getString(i++);
-								String value = r1.getString(i++);
-								obj.put(key, value);
+								obj.put(metaData.getColumnLabel(i),
+										r1.getString(i++));
 							}
+							jsonArray.put(obj);
 						}
 					} catch (IllegalStateException e) {
 						// TODO Auto-generated catch block
@@ -54,7 +107,48 @@ public class TodoApp {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					return obj;
+
+					JSONObject obj1 = new JSONObject();
+					obj1.put("todos", jsonArray);
+					return obj1;
 				});
+		
+		put("/api/todos/:id", (request, response) -> {
+            //String id = request.params(":id");
+            PreparedStatement st = connection
+					.prepareStatement("SELECT * FROM Todo WHERE idTodo = "
+							+ request.params(":id"));
+			ResultSet r1 = st.executeQuery();
+			if (!r1.isBeforeFirst()) {
+				response.status(404); // 404 Not found
+                return "No Records Found";
+			} else {
+				String idTodo = request.queryParams("id");
+	            String todoDesc = request.queryParams("todoDesc");
+                
+                PreparedStatement updateTodo = connection
+                        .prepareStatement("UPDATE Todo SET todoDesc=? WHERE idTodo=?");
+                updateTodo.setString(1, todoDesc);
+                updateTodo.setString(2, idTodo);
+
+                updateTodo.executeUpdate();
+                
+                response.status(201); // 201 Created CHECK THIS!!!!!!!
+
+    			return response;
+            } 
+        });
+
+        delete("/api/todos/:id", (request, response) -> {
+            String idTodo = request.params(":id");
+            
+            PreparedStatement deleteTodo = connection
+                    .prepareStatement("DELETE FROM Todo WHERE idTodo = ?");
+            deleteTodo.setString(1, idTodo);
+            deleteTodo.executeUpdate();
+            
+            return response;
+    
+        });
 	}
 }
