@@ -2,7 +2,6 @@
 
 Teamname: Cloudweavers
 
-Team Members:  
 Jonathan Chandler  
 Kevin Cobarrubia  
 Kevin Detweiler  
