@@ -9,6 +9,7 @@ import static spark.Spark.*;
 
 public class TodoApp {
 
+	// database connection information
 	private static Connection connection;
 	private static String url = "jdbc:mysql://localhost:3306/TodoApp";
 	private static String username = "root";
@@ -16,7 +17,9 @@ public class TodoApp {
 
 	public static void main(String[] args) {
 
+		// set port
 		port(9090);
+
 		// Connect to Database
 		try {
 			connection = DriverManager.getConnection(url, username, password);
@@ -25,8 +28,8 @@ public class TodoApp {
 			System.out.println("Connection Failed");
 			e.printStackTrace();
 		}
-		
-		//Authenticate User
+
+		// Authenticate User
 		before((request, response) -> {
 			Boolean authenticated = false;
 			String auth = request.headers("Authorization");
@@ -34,8 +37,20 @@ public class TodoApp {
 				String b64Credentials = auth.substring("Basic".length()).trim();
 				String credentials = new String(Base64.getDecoder().decode(
 						b64Credentials));
-				System.out.println(credentials);
-				if (credentials.equals("admin:admin"))
+
+				String[] fields = credentials.split(":");
+				
+				PreparedStatement st = connection
+						.prepareStatement("SELECT * FROM User WHERE idUser = \'"
+								+ fields[0] + "\'");
+				ResultSet r1 = st.executeQuery();
+				String user = null;
+				if (r1.next()) {
+					int i = 1;
+					user = r1.getString(i++) + ":" + r1.getString(i++);
+				}
+				System.out.println(user);
+				if (credentials.equals(user))
 					authenticated = true;
 			}
 			if (!authenticated == true) {
@@ -47,20 +62,22 @@ public class TodoApp {
 
 		post("/api/todos",
 				(request, response) -> {
-					String idTodo = request.queryParams("id");
 					String todoDesc = request.queryParams("todoDesc");
+					String complete = request.queryParams("complete");
 
 					PreparedStatement st = connection
-							.prepareStatement("INSERT INTO Todo (idTodo, todoDesc) VALUES (?, ?)");
-					st.setString(1, idTodo);
-					st.setString(2, todoDesc);
-
-					st.executeUpdate();
-
-					response.status(201); // 201 Created
-
-					return response;
-
+							.prepareStatement("INSERT INTO Todo (todoDesc, complete) VALUES (?, ?)");
+					st.setString(1, todoDesc);
+					st.setString(2, complete);
+					int success = st.executeUpdate();
+					if (success == 1) {
+						response.status(201); // 201 Created
+						return "Successfully Created Todo Item \"" + todoDesc
+								+ "\"";
+					} else {
+						response.status(400);
+						return "Error: Could Not Create a New Todo Item ";
+					}
 				});
 
 		get("/api/todos/:id",
@@ -141,35 +158,55 @@ public class TodoApp {
 					ResultSet r1 = st.executeQuery();
 					if (!r1.isBeforeFirst()) {
 						response.status(404); // 404 Not found
-						return "No Records Found";
+						return "Todo Item " + request.params(":id")
+								+ " Does Not Exist and Could Not Be Updated";
 					} else {
-						String idTodo = request.queryParams("id");
 						String todoDesc = request.queryParams("todoDesc");
+						String complete = request.queryParams("complete");
 
 						PreparedStatement updateTodo = connection
-								.prepareStatement("UPDATE Todo SET todoDesc=? WHERE idTodo=?");
+								.prepareStatement("UPDATE Todo SET todoDesc=?, complete=? WHERE idTodo=?");
 						updateTodo.setString(1, todoDesc);
-						updateTodo.setString(2, idTodo);
+						updateTodo.setString(2, complete);
+						updateTodo.setString(3, request.params(":id"));
+						int success = updateTodo.executeUpdate();
 
-						updateTodo.executeUpdate();
-
-						response.status(201); // 201 Created CHECK THIS!!!!!!!
-
-						return response;
+						if (success == 1) {
+							response.status(201);
+							return "Successfully Updated Todo Item "
+									+ request.params(":id");
+						} else {
+							response.status(404);
+							return "Error: Could Not Update Todo Item "
+									+ request.params(":id");
+						}
 					}
+					
 				});
 
 		delete("/api/todos/:id",
 				(request, response) -> {
 					String idTodo = request.params(":id");
 
-					PreparedStatement deleteTodo = connection
+					PreparedStatement st = connection
 							.prepareStatement("DELETE FROM Todo WHERE idTodo = ?");
-					deleteTodo.setString(1, idTodo);
-					deleteTodo.executeUpdate();
-
-					return response;
-
+					st.setString(1, idTodo);
+					int success = st.executeUpdate();
+					if (success == 1) {
+						response.status(200);
+						return "Successfully Deleted Todo Item "
+								+ request.params(":id");
+					} else {
+						response.status(404); // 404 Not found
+						return "Todo Item " + request.params(":id")
+								+ " Does Not Exist and Could Not Be Deleted";
+					}
 				});
+		
+		
+	}
+	
+	public void closeConnections() {
+		
 	}
 }
