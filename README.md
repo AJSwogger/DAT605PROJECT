@@ -9,5 +9,5 @@ Adam Swogger
 
 Cloud Provider - AWS   
 Programming Language - Java   
-Stack - Bitnami Tomcat Stack  
+Stack - Java Spark with Embedded Jetty Server  
 Database - MySQL
