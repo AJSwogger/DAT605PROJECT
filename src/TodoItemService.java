@@ -17,22 +17,23 @@ public class TodoItemService {
 	private Connection connection;
 	private DatabaseConnection db;
 
+	// Constructor
 	public TodoItemService(DatabaseConnection db) {
 		this.db = db;
 	}
 
 	// returns a list of all todo items
-	public List<TodoItem> getAllTodoItems() {
+	public List<TodoItem> getAllTodoItems(Request request, Response response) {
 		ArrayList<TodoItem> todoList = new ArrayList<>();
 		PreparedStatement st = null;
 		ResultSet r1 = null;
 		try {
-			if(connection == null || connection.isClosed()) {
+			// Connect to Database
+			if (connection == null || connection.isClosed()) {
 				connection = db.connect();
 			}
-		
-			st = connection
-					.prepareStatement("SELECT * FROM Todo");
+
+			st = connection.prepareStatement("SELECT * FROM Todo");
 			r1 = st.executeQuery();
 			ResultSetMetaData metaData = r1.getMetaData();
 			int columnCount = metaData.getColumnCount();
@@ -47,14 +48,13 @@ public class TodoItemService {
 				}
 				todoList.add(todoItem);
 			}
-		} catch (IllegalStateException e) {
-			e.printStackTrace();
 		} catch (SQLException e) {
+			response.status(500); // Internal Server Error
 			e.printStackTrace();
 		} finally {
 			try {
 				r1.close();
-				st.close();	
+				st.close();
 				connection.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -69,7 +69,8 @@ public class TodoItemService {
 		PreparedStatement st = null;
 		ResultSet r1 = null;
 		try {
-			if(connection == null || connection.isClosed()) {
+			// Connect to Database
+			if (connection == null || connection.isClosed()) {
 				connection = db.connect();
 			}
 			st = connection
@@ -79,7 +80,7 @@ public class TodoItemService {
 			ResultSetMetaData metaData = r1.getMetaData();
 			int columnCount = metaData.getColumnCount();
 			if (!r1.isBeforeFirst()) {
-				response.status(404); // 404 Not found
+				response.status(404); // Not Found
 			} else {
 				while (r1.next()) {
 					int i = 1;
@@ -90,14 +91,13 @@ public class TodoItemService {
 					}
 				}
 			}
-		} catch (IllegalStateException e) {
-			e.printStackTrace();
 		} catch (SQLException e) {
+			response.status(500); // Internal Server Error
 			e.printStackTrace();
-		} finally  {
+		} finally {
 			try {
 				r1.close();
-				st.close();	
+				st.close();
 				connection.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -112,11 +112,11 @@ public class TodoItemService {
 		ResultSet r1 = null;
 		ResultSetMetaData metaData = null;
 		PreparedStatement st = null;
-		//PreparedStatement st1 = null;
 		Map<String, String> requestBody = parseBody(request);
 		TodoItem todoItem = null;
 		try {
-			if(connection == null || connection.isClosed()) {
+			// Connect to Database
+			if (connection == null || connection.isClosed()) {
 				connection = db.connect();
 			}
 			st = connection
@@ -125,7 +125,7 @@ public class TodoItemService {
 			st.setString(2, requestBody.get("complete"));
 			success = st.executeUpdate();
 			if (success == 1) {
-				response.status(201);
+				response.status(201); // Created
 				st = connection
 						.prepareStatement("SELECT * FROM Todo ORDER BY idTodo DESC LIMIT 1");
 				r1 = st.executeQuery();
@@ -140,31 +140,24 @@ public class TodoItemService {
 								r1.getString(i++));
 					}
 				}
-				
+
+			} else {
+				response.status(400); // Bad Request
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+			response.status(500); // Internal Server Error
 			e.printStackTrace();
 		} finally {
 			try {
 				r1.close();
 				st.close();
-				//st1.close();
 				connection.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-		    
+
 		}
 		return todoItem;
-
-		/*
-		 * if (success == 1) { response.status(201); // 201 Created return
-		 * "Successfully Created Todo Item \"" + todoDesc + "\""; } else {
-		 * response.status(400); return
-		 * "Error: Could Not Create a New Todo Item "; }
-		 */
-
 	}
 
 	// updates an existing todo item
@@ -177,7 +170,8 @@ public class TodoItemService {
 		PreparedStatement st = null;
 		ResultSet r1 = null;
 		try {
-			if(connection == null || connection.isClosed()) {
+			// Connect to Database
+			if (connection == null || connection.isClosed()) {
 				connection = db.connect();
 			}
 			st = connection
@@ -194,12 +188,13 @@ public class TodoItemService {
 				updateTodo.setString(3, request.params(":id"));
 				int success = updateTodo.executeUpdate();
 				if (success == 1) {
-					response.status(201);
+					response.status(201); // Created
 				} else {
-					response.status(404);
+					response.status(400); // Bad Request
 				}
 			}
 		} catch (SQLException e) {
+			response.status(500); // Internal Server Error
 			e.printStackTrace();
 		} finally {
 			try {
@@ -215,11 +210,11 @@ public class TodoItemService {
 
 	public int removeTodoItem(Request request, Response response) {
 		String idTodo = request.params(":id");
-		System.out.println(idTodo);
 		int success = 0;
 		PreparedStatement st = null;
 		try {
-			if(connection == null || connection.isClosed()) {
+			// Connect to Database
+			if (connection == null || connection.isClosed()) {
 				connection = db.connect();
 			}
 			st = connection
@@ -232,6 +227,7 @@ public class TodoItemService {
 				response.status(404); // 404 Not found
 			}
 		} catch (SQLException e) {
+			response.status(500); // Internal Server Error
 			e.printStackTrace();
 		} finally {
 			try {
