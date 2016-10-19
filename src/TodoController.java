@@ -2,7 +2,6 @@ package com.dat605;
 
 import java.sql.*;
 import java.util.Base64;
-
 import static com.dat605.JsonUtil.*;
 import static spark.Spark.*;
 
@@ -43,7 +42,6 @@ public class TodoController {
 						int i = 1;
 						user = r1.getString(i++) + ":" + r1.getString(i++);
 					}
-					System.out.println(user);
 					if (credentials.equals(user))
 						authenticated = true;
 				}
@@ -63,19 +61,19 @@ public class TodoController {
 
 		});
 
+		// Convert response type to JSON
 		after((request, response) -> {
 			response.type("application/json");
 		});
 
 		// RESTful methods
-
-		post("api/todos", "application/json",
+		post("api/todos",
 				(request, response) -> todoItemService.createTodoItem(request,
 						response), json());
 
 		get("/api/todos",
-				(request, response) -> todoItemService.getAllTodoItems(),
-				json());
+				(request, response) -> todoItemService.getAllTodoItems(request,
+						response), json());
 
 		get("/api/todos/:id",
 				(request, response) -> todoItemService.getTodoItem(request,
