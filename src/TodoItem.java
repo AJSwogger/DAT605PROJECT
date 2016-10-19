@@ -5,12 +5,14 @@ public class TodoItem {
 	private String todoDesc;
 	private String complete;
 
+	// TodoIem Constructor
 	public TodoItem(int idTodo, String todoDesc, String complete) {
 		this.idTodo = idTodo;
 		this.todoDesc = todoDesc;
 		this.complete = complete;
 	}
 
+	// TodoItem Getters and Setters
 	public int getId() {
 		return idTodo;
 	}
