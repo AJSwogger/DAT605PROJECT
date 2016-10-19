@@ -9,10 +9,12 @@ import com.google.gson.reflect.TypeToken;
 
 public class JsonUtil {
 
+	// Convert Object to JSON
 	public static String toJson(Object object) {
 		return new Gson().toJson(object);
 	}
 
+	// Parse request body from JSON and return Map
 	public static Map<String, String> parseBody(Request request) {
 		Gson gson = new Gson();
 		Type type = new TypeToken<Map<String, String>>() {
@@ -20,6 +22,7 @@ public class JsonUtil {
 		return gson.fromJson(request.body(), type);
 	}
 
+	// Create a ResponseTransformer that converts object to JSON
 	public static ResponseTransformer json() {
 		return JsonUtil::toJson;
 	}
