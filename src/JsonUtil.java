@@ -22,7 +22,7 @@ public class JsonUtil {
 		return gson.fromJson(request.body(), type);
 	}
 
-	// Create a ResponseTransformer that converts object to JSON
+	// ResponseTransformer method that uses a method reference to call toJson()
 	public static ResponseTransformer json() {
 		return JsonUtil::toJson;
 	}
